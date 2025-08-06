@@ -16,8 +16,8 @@ namespace TodoList.Services.Task
 
             List<TaskCategory> categories = FileHelper.ReadFromFile<TaskCategory>(PathHolder.Category);
 
-            var category = categories.FirstOrDefault(category => category.Id == model.CategoryId && category.UserId == model.UserId)
-                ?? throw new NotFoundException($"Category was not found with this ID{model.CategoryId} for the user{model.UserId}!");
+            var category = categories.FirstOrDefault(category => category.Id == model.CategoryId)
+                ?? throw new NotFoundException($"Category was not found with this ID{model.CategoryId}!");
 
             if (string.IsNullOrWhiteSpace(model.Title))
             {
@@ -28,7 +28,7 @@ namespace TodoList.Services.Task
             FileHelper.WriteToFile(PathHolder.Task, tasks);
         }
 
-        public void Update(int id,long chatId, TaskUpdateModel model)
+        public void Update(int id, TaskUpdateModel model)
         {
             List<UserTask> tasks = FileHelper.ReadFromFile<UserTask>(PathHolder.Task);
 
@@ -37,10 +37,8 @@ namespace TodoList.Services.Task
             var taskForUpdation = tasks.Find(task => task.Id == id)
                 ?? throw new NotFoundException($"Task was not found with this ID >>> {id}!");
 
-            var category = categories.FirstOrDefault(category => category.Id == model.CategoryId 
-                 && category.UserId == chatId)
-                    ?? throw new NotFoundException($"" +
-                        $"Category was not found with this ID{model.CategoryId} for the user{chatId}!");
+            var category = categories.FirstOrDefault(category => category.Id == model.CategoryId)
+                ?? throw new NotFoundException($"Category was not found with this ID {model.CategoryId}!");
 
             if (string.IsNullOrWhiteSpace(model.Title))
             {
@@ -52,17 +50,26 @@ namespace TodoList.Services.Task
             FileHelper.WriteToFile(PathHolder.Task, tasks);
         }
 
-        public void Delete(int id, long chatId)
+        public void Delete(int id)
         {
             List<UserTask> tasks = FileHelper.ReadFromFile<UserTask>(PathHolder.Task);
 
+            UserTask taskForDeletion = tasks.FirstOrDefault(task => task.Id == id)
+                ?? throw new NotFoundException($"task was not found on ID >>> {id}");
 
+            tasks.Remove(taskForDeletion);
 
+            FileHelper.WriteToFile(PathHolder.Task, tasks);
         }
 
-        public UserTask Get(int id, long chatId)
+        public TaskViewModel Get(int id)
         {
-            throw new NotImplementedException();
+            List<UserTask> tasks = FileHelper.ReadFromFile<UserTask>(PathHolder.Task);
+
+            UserTask task = tasks.FirstOrDefault(task => task.Id == id)
+                ?? throw new NotFoundException($"task was not found on ID >>> {id}");
+
+            return task.Map();
         }
 
         public List<UserTask> GetAll(string? search, Status isCompleted = Status.Any)
